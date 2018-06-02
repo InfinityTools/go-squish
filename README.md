@@ -1,2 +1,4 @@
 # go-squish
-Go bindings for libsquish
+*Go bindings for libsquish*
+
+Coming soon...
