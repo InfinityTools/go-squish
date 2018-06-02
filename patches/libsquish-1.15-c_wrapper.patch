@@ -1,0 +1,181 @@
+diff -Naur libsquish-1.15-orig/CMakeLists.txt libsquish-1.15/CMakeLists.txt
+--- libsquish-1.15-orig/CMakeLists.txt	2017-03-14 08:40:13.000000000 +0100
++++ libsquish-1.15/CMakeLists.txt	2018-05-12 22:41:18.112805300 +0200
+@@ -44,6 +44,7 @@
+ 
+ SET(SQUISH_HDRS
+     squish.h
++    csquish.h
+     )
+ 
+ SET(SQUISH_SRCS
+@@ -69,6 +70,7 @@
+     singlecolourfit.h
+     singlecolourlookup.inl
+     squish.cpp
++    csquish.cpp
+     )
+ 
+ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+diff -Naur libsquish-1.15-orig/config libsquish-1.15/config
+--- libsquish-1.15-orig/config	2017-03-14 11:16:58.000000000 +0100
++++ libsquish-1.15/config	2018-05-12 22:40:03.406657900 +0200
+@@ -17,6 +17,7 @@
+ ifeq ($(USE_OPENMP),1)
+    CPPFLAGS += -DSQUISH_USE_OPENMP
+    CXXFLAGS += -fopenmp
++   LDFLAGS += -fopenmp
+ endif
+ ifeq ($(USE_ALTIVEC),1)
+    CPPFLAGS += -DSQUISH_USE_ALTIVEC=1
+diff -Naur libsquish-1.15-orig/csquish.cpp libsquish-1.15/csquish.cpp
+--- libsquish-1.15-orig/csquish.cpp	1970-01-01 01:00:00.000000000 +0100
++++ libsquish-1.15/csquish.cpp	2018-05-12 22:41:18.114055400 +0200
+@@ -0,0 +1,53 @@
++#include "squish.h"
++#include "csquish.h"
++
++/*
++ * Hides the C++ function calls behind C compatible function definitions.
++ */
++extern "C" {
++
++const int ckDxt1                      = squish::kDxt1;
++const int ckDxt3                      = squish::kDxt3;
++const int ckDxt5                      = squish::kDxt5;
++const int ckBc4                       = squish::kBc4;
++const int ckBc5                       = squish::kBc5;
++const int ckColourClusterFit          = squish::kColourClusterFit;
++const int ckColourRangeFit            = squish::kColourRangeFit;
++const int ckWeightColourByAlpha       = squish::kWeightColourByAlpha;
++const int ckColourIterativeClusterFit = squish::kColourIterativeClusterFit;
++const int ckSourceBGRA                = squish::kSourceBGRA;
++
++void CCompressMasked( u8 const* rgba, int mask, void* block, int flags, float* metric )
++{
++  squish::CompressMasked( rgba, mask, block, flags, metric );
++}
++
++void CDecompress( u8* rgba, void const* block, int flags )
++{
++  squish::Decompress( rgba, block, flags );
++}
++
++int CGetStorageRequirements( int width, int height, int flags )
++{
++  squish::GetStorageRequirements( width, height, flags );
++}
++
++void CCompressImageEx( u8 const* rgba, int width, int height, int pitch, void* blocks, int flags, float* metric )
++{
++  squish::CompressImage( rgba, width, height, pitch, blocks, flags, metric );
++}
++
++void CDecompressImageEx( u8* rgba, int width, int height, int pitch, void const* blocks, int flags )
++{
++  squish::DecompressImage( rgba, width, height, pitch, blocks, flags );
++}
++
++void CComputeMSEEx( u8 const *rgba, int width, int height, int pitch, u8 const *dxt, int flags, double *colourMSE, double *alphaMSE )
++{
++  double c = 0.0, a = 0.0;
++  squish::ComputeMSE( rgba, width, height, pitch, dxt, flags, c, a );
++  if (colourMSE != 0) *colourMSE = c;
++  if (alphaMSE != 0) *alphaMSE = a;
++}
++
++}
+diff -Naur libsquish-1.15-orig/csquish.h libsquish-1.15/csquish.h
+--- libsquish-1.15-orig/csquish.h	1970-01-01 01:00:00.000000000 +0100
++++ libsquish-1.15/csquish.h	2018-05-12 22:41:18.116555400 +0200
+@@ -0,0 +1,57 @@
++#ifndef CSQUISH_H
++#define CSQUISH_H
++
++/*
++ * Hides the C++ function calls of the squish library behind C compatible function definitions.
++ */
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++typedef unsigned char u8;
++
++extern const int ckDxt1;
++extern const int ckDxt3;
++extern const int ckDxt5;
++extern const int ckBc4;
++extern const int ckBc5;
++extern const int ckColourClusterFit;
++extern const int ckColourRangeFit;
++extern const int ckWeightColourByAlpha;
++extern const int ckColourIterativeClusterFit;
++extern const int ckSourceBGRA;
++
++void CCompressMasked( u8 const* rgba, int mask, void* block, int flags, float* metric );
++inline void CCompress( u8 const* rgba, void* block, int flags, float* metric )
++{
++    CCompressMasked( rgba, 0xffff, block, flags, metric );
++}
++
++void CDecompress( u8* rgba, void const* block, int flags );
++
++int CGetStorageRequirements( int width, int height, int flags );
++
++void CCompressImageEx( u8 const* rgba, int width, int height, int pitch, void* blocks, int flags, float* metric );
++inline void CCompressImage( u8 const* rgba, int width, int height, void* blocks, int flags, float* metric )
++{
++    CCompressImageEx( rgba, width, height, width * 4, blocks, flags, metric );
++}
++
++void CDecompressImageEx( u8* rgba, int width, int height, int pitch, void const* blocks, int flags );
++inline void CDecompressImage( u8* rgba, int width, int height, void const* blocks, int flags )
++{
++    CDecompressImageEx( rgba, width, height, width * 4, blocks, flags );
++}
++
++void CComputeMSEEx( u8 const *rgba, int width, int height, int pitch, u8 const *dxt, int flags, double *colourMSE, double *alphaMSE );
++inline void CComputeMSE( u8 const *rgba, int width, int height, u8 const *dxt, int flags, double *colourMSE, double *alphaMSE )
++{
++  CComputeMSEEx( rgba, width, height, width * 4, dxt, flags, colourMSE, alphaMSE );
++}
++
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // ndef CSQUISH_H
+diff -Naur libsquish-1.15-orig/libSquish.pri libsquish-1.15/libSquish.pri
+--- libsquish-1.15-orig/libSquish.pri	2016-09-23 10:12:08.000000000 +0200
++++ libsquish-1.15/libSquish.pri	2018-05-12 22:41:18.121555500 +0200
+@@ -1,5 +1,6 @@
+ HEADERS += \
+-   squish.h
++   squish.h \
++   csquish.h
+ 
+ SOURCES += \
+    alpha.cpp \
+@@ -23,4 +24,5 @@
+    singlecolourfit.cpp \
+    singlecolourfit.h \
+    singlecolourlookup.inl \
+-   squish.cpp
++   squish.cpp \
++   csquish.cpp
+diff -Naur libsquish-1.15-orig/Makefile libsquish-1.15/Makefile
+--- libsquish-1.15-orig/Makefile	2017-03-14 11:14:47.000000000 +0100
++++ libsquish-1.15/Makefile	2018-05-12 22:41:18.127805600 +0200
+@@ -3,9 +3,9 @@
+ VER = 1.15
+ SOVER = 0
+ 
+-SRC = alpha.cpp clusterfit.cpp colourblock.cpp colourfit.cpp colourset.cpp maths.cpp rangefit.cpp singlecolourfit.cpp squish.cpp
++SRC = alpha.cpp clusterfit.cpp colourblock.cpp colourfit.cpp colourset.cpp maths.cpp rangefit.cpp singlecolourfit.cpp squish.cpp csquish.cpp
+ 
+-HDR = alpha.h clusterfit.h colourblock.h colourfit.h colourset.h maths.h rangefit.h singlecolourfit.h squish.h
++HDR = alpha.h clusterfit.h colourblock.h colourfit.h colourset.h maths.h rangefit.h singlecolourfit.h squish.h csquish.h
+ HDR += config.h simd.h simd_float.h simd_sse.h simd_ve.h singlecolourlookup.inl
+ 
+ OBJ = $(SRC:%.cpp=%.o)
