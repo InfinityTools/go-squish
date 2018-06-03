@@ -65,7 +65,7 @@ else
     echo "Using libdir: $libdir"
 fi
 
-if test ! -d $libdir; then
+if test ! -d "$libdir"; then
   show_message "Error: Path does not exist: $libdir" 1
 fi
 
