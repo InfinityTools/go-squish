@@ -25,6 +25,9 @@ show_message() {
   fi
 }
 
+if test ! $(which go); then
+  show_message "Error: Go compiler not found." 1
+fi
 
 # Evaluating command line arguments...
 while test $# != 0
@@ -33,8 +36,7 @@ do
   --libdir)
     shift
     if test $# == 0; then
-      echo "Missing argument: --libdir"
-      exit 1
+      show_message "Missing argument: --libdir" 1
     fi
     libdir="$1"
     ;;
@@ -46,31 +48,25 @@ do
 done
 
 
-if test -z "$libdir"; then
-  if test $(go env GOOS) = "darwin"; then
-    libos="darwin"
-    # Package-specific libraries
-    ldargs="-lsquish -lm -lstdc++"
-  else
-    libos="linux"
-    # Package-specific libraries
-    ldargs="-lsquish -lgomp -lm -lstdc++"
-  fi
+# Setting package-specific linker options
+if test $(go env CC) = "gcc"; then
+  ldargs="-lsquish -lgomp -lm -lstdc++"
+else
+  ldargs="-lsquish -lm -lstdc++"
+fi
 
-  if test $(go env GOARCH) = "amd64"; then
-    libarch="amd64"
-  else
-    libarch="386"
-  fi
+if test -z "$libdir"; then
+  libos=$(go env GOOS)
+  libarch=$(go env GOARCH)
   echo "Detected: os=$libos, arch=$libarch"
+
   libdir=libs/$libos/$libarch
 else
     echo "Using libdir: $libdir"
 fi
 
 if test ! -d $libdir; then
-  echo "Error: Path does not exist: $libdir"
-  exit 1
+  show_message "Error: Path does not exist: $libdir" 1
 fi
 
 echo "Building library..."

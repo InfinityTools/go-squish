@@ -1,67 +1,84 @@
 @echo off
 
-rem A build script that automatically picks the right library from the subfolders in "libs".
-rem Use this script if you are unable or don't want to use the system library.
+REM A build script that automatically picks the right library from the subfolders in "libs".
+REM Use this script if you are unable or don't want to use the system library.
 
 setlocal
 
-rem Package-specific libraries
+REM Package-specific libraries
 set ldargs=-lsquish -lgomp -lm -lstdc++
 
+REM Checking Go compiler
+where /q go || (
+  echo Go compiler not found.
+  goto Failed
+)
+
+REM Evaluating command line parameters
 :ArgsLoop
 if "%~1"=="" goto ArgsFinished
-echo "%~1" | find /i "--libdir" >nul && goto ArgsLibDir
-echo "%~1" | find /i "--help" >nul && goto ArgsHelp
-goto ArgsUpdate
 
-:ArgsLibDir
-shift
-set libdir=%~1
-goto ArgsUpdate
+if "%~1"=="--libdir" (
+  set libdir=%~2
+  shift
+  goto ArgsUpdate
+)
 
-:ArgsHelp
+if "%~1"=="--help" (
 echo Usage: %~n0%~x0 [options]
 echo.
 echo Options:
 echo   --libdir path    Override library path
 echo   --help           This help
 goto Finished
+)
 
 :ArgsUpdate
 shift
 goto ArgsLoop
 
 :ArgsFinished
-if not "%libdir%"=="" goto SkipAuto
 
-rem Autodetect
-go env GOARCH | findstr /i "amd64" >nul && goto x86_64
+if [%libdir%]==[] (
+  set customLibdir=0
+) else (
+  set customLibdir=1
+)
 
-echo Detected: os=windows, arch=386
-set libdir=libs/windows/386
-goto Continued
+REM Handling custom libdir
+if /i %customLibdir% NEQ 0 (
+  if not exist %libdir:/=\% (
+    echo Directory does not exist: %libdir%
+    goto Failed
+  )
+  echo Using libdir: %libdir%
+)
 
-:x86_64
-echo Detected: os=windows, arch=amd64
-set libdir=libs/windows/amd64
-goto Continued
+REM Autodetect libdir
+if /i %customLibdir% EQU 0 (
+  for /f "tokens=* usebackq" %%a in (`go env GOOS`) do (
+    set libos=%%a
+  )
+  for /f "tokens=* usebackq" %%a in (`go env GOARCH`) do (
+    set libarch=%%a
+  )
+)
+if /i %customLibdir% EQU 0 (
+  echo Detected: os=%libos%, arch=%libarch%
+  set libdir=libs/%libos%/%libarch%
+)
 
-:SkipAuto
-echo Using libdir: %libdir%
-
-:Continued
 echo Building library...
 set CGO_LDFLAGS=-L%libdir% %ldargs%
 go build && go install && goto Success || goto Failed
-
-:Success
-echo Finished.
-goto Finished
 
 :Failed
 echo Cancelled.
 endlocal
 exit /b 1
+
+:Success
+echo Finished.
 
 :Finished
 endlocal
