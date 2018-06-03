@@ -15,6 +15,10 @@ go-squish package path is currently `github.com/InfinityTools/squish`. The bindi
 
 This package makes use of CGO, which requires a decent C compiler to be installed. However, using `go install` removes the C compiler requirement for future invocations of `go build`.
 
+## Documentation
+
+For docs, see https://godoc.org/github.com/InfinityTools/go-squish .
+
 ## License
 
 Both *go-squish* and the libsquish C wrapper patch are released under the BSD 2-clause license. See LICENSE for more details.
