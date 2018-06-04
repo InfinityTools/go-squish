@@ -29,6 +29,11 @@ if test ! $(which go); then
   show_message "Error: Go compiler not found." 1
 fi
 
+# Setting up important variables
+gopath=$(go env GOPATH)
+packageRoot="github.com/InfinityTools/go-squish"
+ldprefix="$gopath/src/$packageRoot"
+
 # Evaluating command line arguments...
 while test $# != 0
 do
@@ -60,7 +65,7 @@ if test -z "$libdir"; then
   libarch=$(go env GOARCH)
   echo "Detected: os=$libos, arch=$libarch"
 
-  libdir=libs/$libos/$libarch
+  libdir="$ldprefix/libs/$libos/$libarch"
 else
     echo "Using libdir: $libdir"
 fi
