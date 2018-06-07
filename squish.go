@@ -2,6 +2,8 @@
 Package squish provides bindings to the external libsquish library to be used for 
 compression and decompression of DXT-encoded pixel data.
 
+Original C++ library: https://sourceforge.net/projects/libsquish/
+
 Important:
 The original libSquish library is written in C++ and therefore not directly compatible with the CGo compiler tool.
 The included patch file "libsquish-1.15-c_wrapper.patch" adds a simple C wrapper. Apply it before building the C++ library.
