@@ -9,8 +9,16 @@ The included patch file "libsquish-1.15-c_wrapper.patch" adds a simple C wrapper
 package squish
 
 /*
-// For release: Use CGO_LDFLAGS environment variable to define -Llibdir and -llibname parameters
-// Example: CGO_LDFLAGS=-L${SRCDIR} -lsquish -lgomp -lstdc++
+// CGO linker flags are defined for selected platforms windows/linux/freebsd/darwin and architectures 386/amd64.
+// Set CGO_LDFLAGS environment variable manually for undefined platforms and architectures or non-standard configurations.
+#cgo windows,386 LDFLAGS: -Llibs/windows/386 -lsquish -lgomp -lm -lstdc++
+#cgo windows,amd64 LDFLAGS: -Llibs/windows/amd64 -lsquish -lgomp -lm -lstdc++
+#cgo linux,386 LDFLAGS: -Llibs/linux/386 -lsquish -lgomp -lm -lstdc++
+#cgo linux,amd64 LDFLAGS: -Llibs/linux/amd64 -lsquish -lgomp -lm -lstdc++
+#cgo freebsd,386 LDFLAGS: -Llibs/freebsd/386 -lsquish -lgomp -lm -lstdc++
+#cgo freebsd,amd64 LDFLAGS: -Llibs/freebsd/amd64 -lsquish -lgomp -lm -lstdc++
+#cgo darwin,386 LDFLAGS: -Llibs/darwin/386 -lsquish -lm -lstdc++
+#cgo darwin,amd64 LDFLAGS: -Llibs/darwin/amd64 -lsquish -lm -lstdc++
 #include "csquish.h"
 */
 import "C"
