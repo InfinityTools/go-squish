@@ -32,7 +32,7 @@ func NRGBA(col color.Color) (r, g, b, a byte) {
 }
 
 
-// ImageToBytes converts the image pixel data into a sequence of bytes where pixels are laid out as 
+// ImageToBytes converts the image pixel data into a sequence of bytes where pixels are laid out as
 // { r1, g1, b1, a1, ..., rn, gn, bn, an }.
 func ImageToBytes(img image.Image) []byte {
   width, height := img.Bounds().Dx(), img.Bounds().Dy()

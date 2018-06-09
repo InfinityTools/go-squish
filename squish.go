@@ -1,5 +1,5 @@
 /*
-Package squish provides bindings to the external libsquish library to be used for 
+Package squish provides bindings to the external libsquish library to be used for
 compression and decompression of DXT-encoded pixel data.
 
 Original C++ library: https://sourceforge.net/projects/libsquish/
@@ -64,7 +64,7 @@ var (
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
 // All other flags are ignored.
 //
-// Most DXT images will be a multiple of 4 in each dimension, but this function supports arbitrary size images by allowing the outer blocks to be 
+// Most DXT images will be a multiple of 4 in each dimension, but this function supports arbitrary size images by allowing the outer blocks to be
 // only partially used.
 func GetStorageRequirements(width, height, flags int) int {
   var ret C.int = C.CGetStorageRequirements(C.int(width), C.int(height), C.int(flags))
@@ -97,27 +97,27 @@ func CompressImage(img image.Image, flags int, metric []float32) []byte {
 //  param metric   An optional perceptual metric.
 //  return         The (updated) storage for the compressed output.
 //
-// The source pixels should be presented as a contiguous array of width*height rgba values, with each component as 1 byte each. In memory this should be: 
+// The source pixels should be presented as a contiguous array of width*height rgba values, with each component as 1 byte each. In memory this should be:
 // { r1, g1, b1, a1, .... , rn, gn, bn, an } for n = width*height
 //
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
 // When using DXT1 compression, 8 bytes of storage are required for each compressed DXT block. DXT3 and DXT5 compression require 16 bytes of storage per block.
 //
-// The flags parameter can also specify a preferred colour compressor to use when fitting the RGB components of the data. Possible colour compressors are: 
+// The flags parameter can also specify a preferred colour compressor to use when fitting the RGB components of the data. Possible colour compressors are:
 // FLAGS_CLUSTER_FIT (the default), FLAGS_RANGE_FIT (very fast, low quality) or FLAGS_ITERATIVE_CLUSTER_FIT (slowest, best quality).
 //
-// When using FLAGS_CLUSTER_FIT or FLAGS_ITERATIVE_CLUSTER_FIT, an additional flag can be specified to weight the importance of each pixel by its alpha value. 
+// When using FLAGS_CLUSTER_FIT or FLAGS_ITERATIVE_CLUSTER_FIT, an additional flag can be specified to weight the importance of each pixel by its alpha value.
 // For images that are rendered using alpha blending, this can significantly increase the perceived quality.
 //
-// The metric parameter can be used to weight the relative importance of each colour channel, or pass NULL to use the default uniform weight of { 1.0f, 1.0f, 1.0f }. 
-// This replaces the previous flag-based control that allowed either uniform or "perceptual" weights with the fixed values { 0.2126f, 0.7152f, 0.0722f }. 
+// The metric parameter can be used to weight the relative importance of each colour channel, or pass NULL to use the default uniform weight of { 1.0f, 1.0f, 1.0f }.
+// This replaces the previous flag-based control that allowed either uniform or "perceptual" weights with the fixed values { 0.2126f, 0.7152f, 0.0722f }.
 // If non-NULL, the metric should point to a contiguous array of 3 floats.
 //
-// Internally this function calls CompressMasked() for each block, which allows for pixels outside the image to take arbitrary values. 
+// Internally this function calls CompressMasked() for each block, which allows for pixels outside the image to take arbitrary values.
 // The function GetStorageRequirements() can be called to compute the amount of memory to allocate for the compressed output.
 //
-// Note on compression quality: When compressing textures with libsquish it is recommended to apply a gamma-correction beforehand. This will reduce the blockiness 
-// in dark areas. The level of necessary gamma-correction is platform dependent. For example, a gamma correction with gamma = 0.5 before compression 
+// Note on compression quality: When compressing textures with libsquish it is recommended to apply a gamma-correction beforehand. This will reduce the blockiness
+// in dark areas. The level of necessary gamma-correction is platform dependent. For example, a gamma correction with gamma = 0.5 before compression
 // and gamma = 2.0 after decompression yields good results on the Windows platform but for other platforms like MacOS X a different gamma value may be more suitable.
 func CompressBufferEx(rgba []byte, width, height, pitch int, blocks []byte, flags int, metric []float32) []byte {
   if blocks == nil {
@@ -171,7 +171,7 @@ func DecompressImage(width, height int, blocks []byte, flags int) image.Image {
 //  param flags    Compression flags.
 //  return         The (updated) storage for the decompressed pixels.
 //
-// The decompressed pixels will be written as a contiguous array of width*height 16 rgba values, with each component as 1 byte each. In memory this is: 
+// The decompressed pixels will be written as a contiguous array of width*height 16 rgba values, with each component as 1 byte each. In memory this is:
 // { r1, g1, b1, a1, .... , rn, gn, bn, an } for n = width*height
 //
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
@@ -201,26 +201,26 @@ func DecompressBuffer(rgba []byte, width, height int, blocks []byte, flags int) 
 //  param metric   An optional perceptual metric.
 //  return         The (updated) storage for the compressed DXT block.
 //
-// The source pixels should be presented as a contiguous array of 16 rgba values, with each component as 1 byte each. In memory this should be: 
+// The source pixels should be presented as a contiguous array of 16 rgba values, with each component as 1 byte each. In memory this should be:
 // { r1, g1, b1, a1, .... , r16, g16, b16, a16 }
 //
-// The mask parameter enables only certain pixels within the block. The lowest bit enables the first pixel and so on up to the 16th bit. 
-// Bits beyond the 16th bit are ignored. Pixels that are not enabled are allowed to take arbitrary colours in the output block. 
-// An example of how this can be used is in the CompressImage function to disable pixels outside the bounds of the image when the width or height 
+// The mask parameter enables only certain pixels within the block. The lowest bit enables the first pixel and so on up to the 16th bit.
+// Bits beyond the 16th bit are ignored. Pixels that are not enabled are allowed to take arbitrary colours in the output block.
+// An example of how this can be used is in the CompressImage function to disable pixels outside the bounds of the image when the width or height
 // is not divisible by 4.
 //
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
-// When using DXT1 compression, 8 bytes of storage are required for the compressed DXT block. DXT3 and DXT5 compression require 16 bytes of storage 
+// When using DXT1 compression, 8 bytes of storage are required for the compressed DXT block. DXT3 and DXT5 compression require 16 bytes of storage
 // per block.
 //
-// The flags parameter can also specify a preferred colour compressor to use when fitting the RGB components of the data. Possible colour compressors are: 
+// The flags parameter can also specify a preferred colour compressor to use when fitting the RGB components of the data. Possible colour compressors are:
 // FLAGS_CLUSTER_FIT (the default), FLAGS_RANGE_FIT (very fast, low quality) or FLAGS_ITERATIVE_CLUSTER_FIT (slowest, best quality).
 //
-// When using FLAGS_CLUSTER_FIT or FLAGS_ITERATIVE_CLUSTER_FIT, an additional flag can be specified to weight the importance of each pixel by its alpha value. 
+// When using FLAGS_CLUSTER_FIT or FLAGS_ITERATIVE_CLUSTER_FIT, an additional flag can be specified to weight the importance of each pixel by its alpha value.
 // For images that are rendered using alpha blending, this can significantly increase the perceived quality.
 //
-// The metric parameter can be used to weight the relative importance of each colour channel, or pass NULL to use the default uniform weight of { 1.0f, 1.0f, 1.0f }. 
-// This replaces the previous flag-based control that allowed either uniform or "perceptual" weights with the fixed values { 0.2126f, 0.7152f, 0.0722f }. 
+// The metric parameter can be used to weight the relative importance of each colour channel, or pass NULL to use the default uniform weight of { 1.0f, 1.0f, 1.0f }.
+// This replaces the previous flag-based control that allowed either uniform or "perceptual" weights with the fixed values { 0.2126f, 0.7152f, 0.0722f }.
 // If non-NULL, the metric should point to a contiguous array of 3 floats.
 func CompressMasked(rgba []byte, mask int, block []byte, flags int, metric []float32) []byte {
   if block == nil {
@@ -243,20 +243,20 @@ func CompressMasked(rgba []byte, mask int, block []byte, flags int, metric []flo
 //  param metric   An optional perceptual metric.
 //  return         The (updated) storage for the compressed DXT block.
 //
-// The source pixels should be presented as a contiguous array of 16 rgba values, with each component as 1 byte each. In memory this should be: 
+// The source pixels should be presented as a contiguous array of 16 rgba values, with each component as 1 byte each. In memory this should be:
 // { r1, g1, b1, a1, .... , r16, g16, b16, a16 }
 //
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
 // When using DXT1 compression, 8 bytes of storage are required for the compressed DXT block. DXT3 and DXT5 compression require 16 bytes of storage per block.
 //
-// The flags parameter can also specify a preferred colour compressor to use when fitting the RGB components of the data. Possible colour compressors are: 
+// The flags parameter can also specify a preferred colour compressor to use when fitting the RGB components of the data. Possible colour compressors are:
 // FLAGS_CLUSTER_FIT (the default), FLAGS_RANGE_FIT (very fast, low quality) or FLAGS_ITERATIVE_CLUSTER_FIT (slowest, best quality).
 //
-// When using FLAGS_CLUSTER_FIT or FLAGS_ITERATIVE_CLUSTER_FIT, an additional flag can be specified to weight the importance of each pixel by its alpha value. 
+// When using FLAGS_CLUSTER_FIT or FLAGS_ITERATIVE_CLUSTER_FIT, an additional flag can be specified to weight the importance of each pixel by its alpha value.
 // For images that are rendered using alpha blending, this can significantly increase the perceived quality.
 //
-// The metric parameter can be used to weight the relative importance of each colour channel, or pass NULL to use the default uniform weight of { 1.0f, 1.0f, 1.0f }. 
-// This replaces the previous flag-based control that allowed either uniform or "perceptual" weights with the fixed values { 0.2126f, 0.7152f, 0.0722f }. 
+// The metric parameter can be used to weight the relative importance of each colour channel, or pass NULL to use the default uniform weight of { 1.0f, 1.0f, 1.0f }.
+// This replaces the previous flag-based control that allowed either uniform or "perceptual" weights with the fixed values { 0.2126f, 0.7152f, 0.0722f }.
 // If non-NULL, the metric should point to a contiguous array of 3 floats.
 //
 // This method is an inline that calls CompressMasked with a mask of 0xffff, provided for compatibility with older versions of squish.
@@ -271,7 +271,7 @@ func Compress(rgba []byte, block []byte, flags int, metric []float32) []byte {
 //  param flags    Compression flags.
 //  return         The (update) storage for the 16 decompressed pixels.
 //
-// The decompressed pixels will be written as a contiguous array of 16 rgba values, with each component as 1 byte each. In memory this is: 
+// The decompressed pixels will be written as a contiguous array of 16 rgba values, with each component as 1 byte each. In memory this is:
 // { r1, g1, b1, a1, .... , r16, g16, b16, a16 }
 //
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
@@ -295,7 +295,7 @@ func Decompress(rgba []byte, block []byte, flags int) []byte {
 //  return colourMSE   The MSE of the colour values.
 //  return alphaMSE    The MSE of the alpha values.
 //
-// The colour MSE and alpha MSE are computed across all pixels. The colour MSE is averaged across all rgb values 
+// The colour MSE and alpha MSE are computed across all pixels. The colour MSE is averaged across all rgb values
 // (i.e. colourMSE = sum sum_k ||dxt.k - rgba.k||/3)
 //
 // The flags parameter should specify FLAGS_DXT1, FLAGS_DXT3, FLAGS_DXT5, FLAGS_BC4, or FLAGS_BC5 compression, however, DXT1 will be used by default if none is specified.
@@ -303,7 +303,7 @@ func Decompress(rgba []byte, block []byte, flags int) []byte {
 //
 // Internally this function calls Decompress() for each block.
 func ComputeMSEEx(rgba []byte, width, height, pitch int, dxt []byte, flags int) (colorMSE, alphaMSE float64) {
-  C.CComputeMSEEx((*C.uchar)(unsafe.Pointer(&rgba[0])), C.int(width), C.int(height), C.int(pitch), (*C.uchar)(unsafe.Pointer(&dxt[0])), C.int(flags), 
+  C.CComputeMSEEx((*C.uchar)(unsafe.Pointer(&rgba[0])), C.int(width), C.int(height), C.int(pitch), (*C.uchar)(unsafe.Pointer(&dxt[0])), C.int(flags),
                   (*C.double)(unsafe.Pointer(&colorMSE)), (*C.double)(unsafe.Pointer(&alphaMSE)))
   return
 }
