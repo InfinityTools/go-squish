@@ -13,9 +13,11 @@ package squish
 /*
 // CGO linker flags are defined for selected platforms windows/linux/freebsd/darwin and architectures 386/amd64.
 // Set CGO_LDFLAGS environment variable manually for undefined platforms and architectures or non-standard configurations.
-// Note: Use static linking on Windows. Override via CGO_LDFLAGS if needed.
-#cgo windows,386 LDFLAGS: -Llibs/windows/386 -lsquish -lm -lstdc++ -static -static-libstdc++ -lgomp
-#cgo windows,amd64 LDFLAGS: -Llibs/windows/amd64 -lsquish -lm -lstdc++ -static -static-libstdc++ -lgomp
+// Note: Replace uncommented with commented Windows cgo directives to enable static linking.
+// #cgo windows,386 LDFLAGS: -Llibs/windows/386 -lsquish -lm -lstdc++ -static -static-libstdc++ -lgomp
+// #cgo windows,amd64 LDFLAGS: -Llibs/windows/amd64 -lsquish -lm -lstdc++ -static -static-libstdc++ -lgomp
+#cgo windows,386 LDFLAGS: -Llibs/windows/386 -lsquish -lgomp -lm -lstdc++
+#cgo windows,amd64 LDFLAGS: -Llibs/windows/amd64 -lsquish -lgomp -lm -lstdc++
 #cgo linux,386 LDFLAGS: -Llibs/linux/386 -lsquish -lgomp -lm -lstdc++
 #cgo linux,amd64 LDFLAGS: -Llibs/linux/amd64 -lsquish -lgomp -lm -lstdc++
 #cgo freebsd,386 LDFLAGS: -Llibs/freebsd/386 -lsquish -lgomp -lm -lstdc++
